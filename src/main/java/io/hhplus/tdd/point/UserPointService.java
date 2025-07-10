@@ -24,4 +24,7 @@ public class UserPointService {
         );
         return chargedPoint;
     }
+    public UserPoint searchPoint(long userId) {
+        return userPointTable.selectById(userId);
+    }
 }
