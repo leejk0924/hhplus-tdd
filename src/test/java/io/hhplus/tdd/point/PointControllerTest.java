@@ -35,7 +35,7 @@ class PointControllerTest {
 
     @Nested
     @DisplayName("포인트 충전 테스트")
-    class chargeTest{
+    class chargeTest {
         @BeforeEach
         void setUp() {
             userPointService = new UserPointService(
@@ -62,6 +62,7 @@ class PointControllerTest {
                             }
                     );
         }
+
         @Test
         public void 유저의_포인트_충전_성공_테스트() throws Exception {
             // Given
@@ -77,6 +78,7 @@ class PointControllerTest {
                     .andExpect(jsonPath("$.id").value(1L))
                     .andExpect(jsonPath("$.point").value(2000));
         }
+
         @Test
         void 포인트_충전_최대한도_초과_실패_테스트() throws Exception {
             // Given
@@ -122,6 +124,7 @@ class PointControllerTest {
                             }
                     );
         }
+
         @Test
         public void 초기유저_포인트_조회_테스트() throws Exception {
             // Given
@@ -133,6 +136,20 @@ class PointControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(1L))
                     .andExpect(jsonPath("$.point").value(0));
+        }
+
+        @Test
+        public void 유저의_포인트를_1회_충전후_포인트_조회_테스트() throws Exception {
+            // Given
+            long initId = 1L;
+            long amount = 1_000_000L;
+            UserPoint initUserPoint = new UserPoint(initId, 0L, 0L);
+            // When && Then
+            userPointService.chargePoint(initId, amount);
+            mockMvc.perform(get("/point/{id}", initId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(1L))
+                    .andExpect(jsonPath("$.point").value(amount));
         }
     }
 }
