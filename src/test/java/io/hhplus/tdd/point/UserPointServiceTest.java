@@ -74,4 +74,33 @@ class UserPointServiceTest {
         assertThat(searchPoint.id()).isEqualTo(initId);
         assertThat(searchPoint.point()).isEqualTo(initPoint);
     }
+    @Test
+    public void 포인트_사용_성공_케이스() throws Exception {
+        // Given
+        long initId = 1L;
+        long initPoint = 1_000_000L;
+        long amount = 1_000_000L;
+        given(userPointTable.selectById(anyLong()))
+                .willAnswer(
+                        i -> {
+                            long inputId = i.getArgument(0);
+                            return new UserPoint(inputId, initPoint, 0L);
+                        }
+                );
+        given(userPointTable.insertOrUpdate(anyLong(), anyLong()))
+                .willAnswer(
+                        i -> {
+                            long inputId = i.getArgument(0);
+                            long inputAmount = i.getArgument(1);
+                            return new UserPoint(inputId, inputAmount, 0L);
+                        }
+                );
+        // When
+        UserPoint usedPoint = sut.usePoint(initId, amount);
+
+        // Then
+        verify(userPointTable).insertOrUpdate(anyLong(), anyLong());
+        assertThat(usedPoint.id()).isEqualTo(initId);
+        assertThat(usedPoint.point()).isEqualTo(initPoint - amount);
+    }
 }

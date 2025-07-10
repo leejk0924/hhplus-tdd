@@ -1,7 +1,9 @@
 package io.hhplus.tdd.point;
 
 import io.hhplus.tdd.error.ExceedMaxPointBalanceException;
+import io.hhplus.tdd.error.InsufficientPointException;
 import io.hhplus.tdd.error.InvalidChargeAmountException;
+import io.hhplus.tdd.error.InvalidUseAmountException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -71,6 +73,52 @@ class UserPointTest {
             assertThatExceptionOfType(InvalidChargeAmountException.class)
                     .isThrownBy(() -> initUser.charge(inputPoint))
                     .withMessage(InvalidChargeAmountException.ERROR_MESSAGE);
+        }
+    }
+    @Nested
+    @DisplayName("포인트 사용 테스트")
+    class useTest {
+        @ParameterizedTest
+        @MethodSource("UserPoint_Use_Success_Test")
+        public void 포인트_사용_In_Range_성공_케이스(long id, long initPoint, long usePoint) throws Exception {
+            // Given
+            UserPoint initUserPoint = new UserPoint(id, initPoint, 0L);
+            long remainingBalance = initPoint - usePoint;
+            // When
+            UserPoint usedUserPoint= initUserPoint.use(usePoint);
+            // Then
+            assertThat(usedUserPoint.id()).isEqualTo(id);
+            assertThat(usedUserPoint.point()).isEqualTo(remainingBalance);
+        }
+        static Stream<Arguments> UserPoint_Use_Success_Test() {
+            return Stream.of(
+                    Arguments.of(1L, 1_000_000L, 900_000L),
+                    Arguments.of(1L, 500_000L, 500_000)
+            );
+        }
+        @ParameterizedTest
+        @MethodSource("UserPoint_Use_fail_Test")
+        public void 포인트_사용_Out_of_Range_실패_케이스(
+                long id,
+                long initPoint,
+                long usePoint,
+                Class<? extends RuntimeException> exception,
+                String errorMessage
+        ) throws Exception {
+            // Given
+            UserPoint initUserPoint = new UserPoint(id, initPoint, 0L);
+            // When && Then
+            assertThatExceptionOfType(exception)
+                    .isThrownBy(() -> initUserPoint.use(usePoint))
+                    .withMessage(errorMessage);
+        }
+        static Stream<Arguments> UserPoint_Use_fail_Test() {
+            return Stream.of(
+                    Arguments.of(1L, 1_000_000L, 1_000_001L, InvalidUseAmountException.class, InvalidUseAmountException.ERROR_MESSAGE),
+                    Arguments.of(1L, 1_000_000L, -1L, InvalidUseAmountException.class, InvalidUseAmountException.ERROR_MESSAGE),
+                    Arguments.of(1L, 0L, 1L, InsufficientPointException.class, InsufficientPointException.ERROR_MESSAGE),
+                    Arguments.of(1L, 0L, 1_000_00L, InsufficientPointException.class, InsufficientPointException.ERROR_MESSAGE)
+            );
         }
     }
 }

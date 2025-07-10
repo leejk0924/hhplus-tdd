@@ -27,4 +27,16 @@ public class UserPointService {
     public UserPoint searchPoint(long userId) {
         return userPointTable.selectById(userId);
     }
+    public UserPoint usePoint(long userId, long amount) {
+        var userPoint = userPointTable.selectById(userId);
+        var use = userPoint.use(amount);
+        var usedUserPoint = userPointTable.insertOrUpdate(use.id(), use.point());
+        pointHistoryTable.insert(
+                usedUserPoint.id(),
+                usedUserPoint.point(),
+                TransactionType.USE,
+                timeProvider.now()
+        );
+        return usedUserPoint;
+    }
 }
