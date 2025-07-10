@@ -6,6 +6,8 @@ import io.hhplus.tdd.time.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserPointService {
@@ -38,5 +40,10 @@ public class UserPointService {
                 timeProvider.now()
         );
         return usedUserPoint;
+    }
+    public List<PointHistory> getPointHistory(long userId) {
+        List<PointHistory> pointHistories = pointHistoryTable.selectAllByUserId(userId);
+        pointHistories.sort(PointHistory.BY_TIME_DESC);
+        return pointHistories;
     }
 }
